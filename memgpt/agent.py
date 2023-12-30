@@ -38,18 +38,22 @@ def initialize_memory(ai_notes, human_notes):
 def construct_system_with_memory(system, memory, memory_edit_timestamp, archival_memory=None, recall_memory=None, include_char_count=True):
     full_system_message = "\n".join(
         [
+            "'''", # start of system message
             system,
+            "'''", # end of system message
             "\n",
+            "'''", # start of memory
             f"### Memory [last modified: {memory_edit_timestamp.strip()}]",
-            f"{len(recall_memory) if recall_memory else 0} previous messages between you and the user are stored in recall memory (use functions to access them)",
             f"{len(archival_memory) if archival_memory else 0} total memories you created are stored in archival memory (use functions to access them)",
-            "\nCore memory shown below (limited in size, additional information stored in archival / recall memory):",
+            f"{len(recall_memory) if recall_memory else 0} previous messages between you and the user are stored in recall memory (use functions to access them)",
+            "\nCore memory (limited in size, additional information stored in archival / recall memory):",
             f'<persona characters="{len(memory.persona)}/{memory.persona_char_limit}">' if include_char_count else "<persona>",
             memory.persona,
             "</persona>",
             f'<human characters="{len(memory.human)}/{memory.human_char_limit}">' if include_char_count else "<human>",
             memory.human,
             "</human>",
+            "'''", # end of memory
         ]
     )
     return full_system_message
@@ -464,7 +468,7 @@ class Agent(object):
 
         # Step 2: check if LLM wanted to call a function
         if response_message.get("function_call"):
-            # The content if then internal monologue, not chat
+            # The content is therefore internal monologue, not chat
             self.interface.internal_monologue(response_message.content)
             messages.append(response_message)  # extend conversation with assistant's reply
 
