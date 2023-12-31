@@ -27,7 +27,7 @@ def get_initial_boot_messages(version="startup"):
                     "name": "send_message",
                     "arguments": '{\n  "message": "' + f"{INITIAL_BOOT_MESSAGE_SEND_MESSAGE_FIRST_MSG}" + '"\n}',
                 },
-                "content_post": INITIAL_BOOT_MESSAGE_SEND_MESSAGE_POST_THOUGHT
+                "content_post": INITIAL_BOOT_MESSAGE_SEND_MESSAGE_POST_THOUGHT,
             },
             # obligatory function return message
             {"role": "function", "name": "send_message", "content": package_function_response(True, None)},

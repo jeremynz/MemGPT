@@ -38,11 +38,11 @@ def initialize_memory(ai_notes, human_notes):
 def construct_system_with_memory(system, memory, memory_edit_timestamp, archival_memory=None, recall_memory=None, include_char_count=True):
     full_system_message = "\n".join(
         [
-            "'''", # start of system message
+            "'''",  # start of system message
             system,
-            "'''", # end of system message
+            "'''",  # end of system message
             "\n",
-            "'''", # start of memory
+            "'''",  # start of memory
             f"### Memory [last modified: {memory_edit_timestamp.strip()}]",
             f"{len(archival_memory) if archival_memory else 0} total memories you created are stored in archival memory (use functions to access them)",
             f"{len(recall_memory) if recall_memory else 0} previous messages between you and the user are stored in recall memory (use functions to access them)",
@@ -53,7 +53,7 @@ def construct_system_with_memory(system, memory, memory_edit_timestamp, archival
             f'<human characters="{len(memory.human)}/{memory.human_char_limit}">' if include_char_count else "<human>",
             memory.human,
             "</human>",
-            "'''", # end of memory
+            "'''",  # end of memory
         ]
     )
     return full_system_message
