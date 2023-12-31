@@ -72,11 +72,14 @@ class ChatMLInnerMonologueWrapper(LLMChatCompletionWrapper):
         func_str += f"\n  description: {schema['description']}"
         func_str += f"\n  params:"
         if add_inner_thoughts:
-            func_str += f"\n    inner_thoughts: Deep inner monologue private to you only."
+            func_str += f"\n    inner_thoughts_pre: Deep inner monologue private to you only."
+        if add_inner_thoughts:
+            func_str += f"\n    inner_thoughts_post: Deep inner monologue private to you only."
         for param_k, param_v in schema["parameters"]["properties"].items():
             # TODO we're ignoring type
             func_str += f"\n    {param_k}: {param_v['description']}"
         # TODO we're ignoring schema['parameters']['required']
+
         return func_str
 
     def _compile_function_block(self, functions) -> str:
@@ -100,7 +103,7 @@ class ChatMLInnerMonologueWrapper(LLMChatCompletionWrapper):
         prompt += self._compile_function_block(functions)
         return prompt
 
-    def _compile_function_call(self, function_call, inner_thoughts=None):
+    def _compile_function_call(self, function_call, inner_thoughts_pre=None, inner_thoughts_post=None):
         """Go from ChatCompletion to Airoboros style function trace (in prompt)
 
         ChatCompletion data (inside message['function_call']):
@@ -122,8 +125,9 @@ class ChatMLInnerMonologueWrapper(LLMChatCompletionWrapper):
         airo_func_call = {
             "function": function_call["name"],
             "params": {
-                "inner_thoughts": inner_thoughts,
+                "inner_thoughts_pre": inner_thoughts_pre,
                 **json.loads(function_call["arguments"]),
+                "inner_thoughts_post": inner_thoughts_post,
             },
         }
         return json.dumps(airo_func_call, indent=self.json_indent)
@@ -134,12 +138,14 @@ class ChatMLInnerMonologueWrapper(LLMChatCompletionWrapper):
         prompt = ""
 
         # need to add the function call if there was one
-        inner_thoughts = message["content"]
+        # inner_thoughts = message["content"] # afaik this should now be unneeded
+        inner_thoughts_pre = message["content_pre"]
+        inner_thoughts_post = message["content_post"]
         if "function_call" in message and message["function_call"]:
-            prompt += f"\n{self._compile_function_call(message['function_call'], inner_thoughts=inner_thoughts)}"
+            prompt += f"\n{self._compile_function_call(message['function_call'], inner_thoughts_pre=inner_thoughts_pre, inner_thoughts_post=inner_thoughts_post)}"
         else:
             # TODO should we format this into JSON somehow?
-            prompt += inner_thoughts
+            prompt += inner_thoughts_pre + inner_thoughts_post
 
         return prompt
 
@@ -246,12 +252,16 @@ class ChatMLInnerMonologueWrapper(LLMChatCompletionWrapper):
             # strip request_heartbeat
             cleaned_function_args.pop("request_heartbeat", None)
 
-        inner_thoughts = None
-        if "inner_thoughts" in function_args:
-            inner_thoughts = cleaned_function_args.pop("inner_thoughts")
+        inner_thoughts_pre = None
+        inner_thoughts_post = None
+
+        if "inner_thoughts_pre" in function_args:
+            inner_thoughts_pre = cleaned_function_args.pop("inner_thoughts_pre")
+        if "inner_thoughts_post" in function_args:
+            inner_thoughts_post = cleaned_function_args.pop("inner_thoughts_post")
 
         # TODO more cleaning to fix errors LLM makes
-        return inner_thoughts, cleaned_function_name, cleaned_function_args
+        return (inner_thoughts_pre, inner_thoughts_post, cleaned_function_name, cleaned_function_args)
 
     def output_to_chat_completion_response(self, raw_llm_output, first_message=False):
         """Turn raw LLM output into a ChatCompletion style response with:
@@ -293,18 +303,20 @@ class ChatMLInnerMonologueWrapper(LLMChatCompletionWrapper):
 
         if self.clean_func_args:
             (
-                inner_thoughts,
+                inner_thoughts_pre,
+                inner_thoughts_post,
                 function_name,
                 function_parameters,
             ) = self._clean_function_args(function_name, function_parameters)
 
         message = {
             "role": "assistant",
-            "content": inner_thoughts,
+            "content_pre": inner_thoughts_pre,
             "function_call": {
                 "name": function_name,
                 "arguments": json.dumps(function_parameters),
             },
+            "content_post": inner_thoughts_post,
         }
         return message
 
@@ -341,7 +353,7 @@ class ChatMLOuterInnerMonologueWrapper(ChatMLInnerMonologueWrapper):
 
     def __init__(self, **kwargs):
         # Set a different default for assistant_prefix_extra if not provided
-        kwargs.setdefault("assistant_prefix_extra", '\n{\n  "inner_thoughts":')
+        kwargs.setdefault("assistant_prefix_extra", '\n{\n  "inner_thoughts_pre":')
         super().__init__(**kwargs)
 
     def _compile_function_block(self, functions) -> str:
@@ -392,7 +404,7 @@ class ChatMLOuterInnerMonologueWrapper(ChatMLInnerMonologueWrapper):
             raise Exception(f"Failed to decode JSON from LLM output:\n{raw_llm_output} - error\n{str(e)}")
         try:
             # NOTE: main diff
-            inner_thoughts = function_json_output["inner_thoughts"]
+            inner_thoughts_pre = function_json_output["inner_thoughts_pre"]
             # NOTE: also have to account for "function": null
             if (
                 "function" in function_json_output
@@ -405,6 +417,8 @@ class ChatMLOuterInnerMonologueWrapper(ChatMLInnerMonologueWrapper):
             else:
                 function_name = None
                 function_parameters = None
+            inner_thoughts_post = function_json_output["inner_thoughts_post"]
+
         except KeyError as e:
             raise LLMJSONParsingError(f"Received valid JSON from LLM, but JSON was missing fields: {str(e)}")
 
@@ -429,11 +443,12 @@ class ChatMLOuterInnerMonologueWrapper(ChatMLInnerMonologueWrapper):
 
         message = {
             "role": "assistant",
-            "content": inner_thoughts,
+            "content_pre": inner_thoughts_pre,
             # "function_call": {
             #     "name": function_name,
             #     "arguments": json.dumps(function_parameters),
             # },
+            "content_post": inner_thoughts_post,
         }
 
         # Add the function if not none:

@@ -59,6 +59,7 @@ html2text = "^2020.1.16"
 docx2txt = "^0.8"
 ebooklib = "^0.18"
 pillow = "^10.1.0"
+nbconvert = "^7.13.1"
 
 [tool.poetry.extras]
 local = ["torch", "huggingface-hub", "transformers"]

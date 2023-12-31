@@ -3,7 +3,8 @@ import json
 from .utils import get_local_time
 from .constants import (
     INITIAL_BOOT_MESSAGE,
-    INITIAL_BOOT_MESSAGE_SEND_MESSAGE_THOUGHT,
+    INITIAL_BOOT_MESSAGE_SEND_MESSAGE_PRE_THOUGHT,
+    INITIAL_BOOT_MESSAGE_SEND_MESSAGE_POST_THOUGHT,
     INITIAL_BOOT_MESSAGE_SEND_MESSAGE_FIRST_MSG,
     MESSAGE_SUMMARY_WARNING_STR,
 )
@@ -21,11 +22,12 @@ def get_initial_boot_messages(version="startup"):
             # first message includes both inner monologue and function call to send_message
             {
                 "role": "assistant",
-                "content": INITIAL_BOOT_MESSAGE_SEND_MESSAGE_THOUGHT,
+                "content_pre": INITIAL_BOOT_MESSAGE_SEND_MESSAGE_PRE_THOUGHT,
                 "function_call": {
                     "name": "send_message",
                     "arguments": '{\n  "message": "' + f"{INITIAL_BOOT_MESSAGE_SEND_MESSAGE_FIRST_MSG}" + '"\n}',
                 },
+                "content_post": INITIAL_BOOT_MESSAGE_SEND_MESSAGE_POST_THOUGHT
             },
             # obligatory function return message
             {"role": "function", "name": "send_message", "content": package_function_response(True, None)},

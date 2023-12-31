@@ -469,7 +469,7 @@ class Agent(object):
         # Step 2: check if LLM wanted to call a function
         if response_message.get("function_call"):
             # The content is therefore internal monologue, not chat
-            self.interface.internal_monologue(response_message.content)
+            self.interface.internal_monologue(response_message.content_pre)
             messages.append(response_message)  # extend conversation with assistant's reply
 
             # Step 3: call the function
@@ -569,6 +569,7 @@ class Agent(object):
             messages.append(response_message)  # extend conversation with assistant's reply
             heartbeat_request = None
             function_failed = None
+        self.interface.internal_monologue(response_message.content_post)
 
         return messages, heartbeat_request, function_failed
 

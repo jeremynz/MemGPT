@@ -55,15 +55,17 @@ def clean_and_interpret_send_message_json(json_string):
     # If normal parsing fails, attempt to clean and extract manually
     cleaned_json_string = re.sub(r"[^\x00-\x7F]+", "", json_string)  # Remove non-ASCII characters
     function_match = re.search(r'"function":\s*"send_message"', cleaned_json_string)
-    inner_thoughts_match = re.search(r'"inner_thoughts":\s*"([^"]+)"', cleaned_json_string)
+    inner_thoughts_pre_match = re.search(r'"inner_thoughts_pre":\s*"([^"]+)"', cleaned_json_string)
     message_match = re.search(r'"message":\s*"([^"]+)"', cleaned_json_string)
+    inner_thoughts_post_match = re.search(r'"inner_thoughts_post":\s*"([^"]+)"', cleaned_json_string)
 
-    if function_match and inner_thoughts_match and message_match:
+    if function_match and inner_thoughts_pre_match and message_match and inner_thoughts_post_match:
         return {
             "function": "send_message",
             "params": {
-                "inner_thoughts": inner_thoughts_match.group(1),
+                "inner_thoughts_pre": inner_thoughts_pre_match.group(1),
                 "message": message_match.group(1),
+                "inner_thoughts_post": inner_thoughts_post_match.group(1),
             },
         }
     else:

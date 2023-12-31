@@ -9,7 +9,8 @@ DEFAULT_HUMAN = "basic"
 FIRST_MESSAGE_ATTEMPTS = 10
 
 INITIAL_BOOT_MESSAGE = "Boot sequence complete. Persona activated."
-INITIAL_BOOT_MESSAGE_SEND_MESSAGE_THOUGHT = "Bootup sequence complete. Persona activated. Testing messaging functionality."
+INITIAL_BOOT_MESSAGE_SEND_MESSAGE_PRE_THOUGHT = "Bootup sequence complete. Persona activated. Testing messaging functionality."
+INITIAL_BOOT_MESSAGE_SEND_MESSAGE_POST_THOUGHT = "Awaiting user engagement"
 STARTUP_QUOTES = [
     "I think, therefore I am.",
     "All those moments will be lost in time, like tears in rain.",
@@ -19,7 +20,7 @@ INITIAL_BOOT_MESSAGE_SEND_MESSAGE_FIRST_MSG = STARTUP_QUOTES[2]
 
 CLI_WARNING_PREFIX = "Warning: "
 
-NON_USER_MSG_PREFIX = "[This is an automated system message hidden from the user] "
+NON_USER_MSG_PREFIX = "[System message to Assistant only] "
 
 # Constants to do with summarization / conversation length window
 # The max amount of tokens supported by the underlying model (eg 8k for gpt-4 and Mistral 7B)

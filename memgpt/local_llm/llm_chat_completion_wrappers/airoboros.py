@@ -282,11 +282,13 @@ class Airoboros21InnerMonologueWrapper(Airoboros21Wrapper):
             func_str += f"\n  description: {schema['description']}"
             func_str += f"\n  params:"
             if add_inner_thoughts:
-                func_str += f"\n    inner_thoughts: Deep inner monologue private to you only."
+                func_str += f"\n    inner_thoughts_pre: Deep inner monologue private to you only."
             for param_k, param_v in schema["parameters"]["properties"].items():
                 # TODO we're ignoring type
                 func_str += f"\n    {param_k}: {param_v['description']}"
             # TODO we're ignoring schema['parameters']['required']
+            if add_inner_thoughts:
+                func_str += f"\n    inner_thoughts_post: Deep inner monologue private to you only."
             return func_str
 
         # prompt += f"\nPlease select the most suitable function and parameters from the list of available functions below, based on the user's input. Provide your response in JSON format."
