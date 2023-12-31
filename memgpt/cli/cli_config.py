@@ -477,6 +477,17 @@ def configure():
 
 @app.command()
 def list(option: str):
+    """
+    Lists all instances of a given type specified by the 'option' parameter.
+
+    Args:
+
+        option (str): Specifies the type of instances to list. This is a required argument. Acceptable values are:
+            - "agents": List all agents.
+            - "humans": List all humans.
+            - "personas": List all personas.
+            - "sources": List all data sources.
+    """
     if option == "agents":
         """List all agents"""
         table = PrettyTable()

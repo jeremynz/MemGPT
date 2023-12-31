@@ -481,7 +481,7 @@ def run(
 
 def attach(
     agent: str = typer.Option(help="Specify agent to attach data to"),
-    data_source: str = typer.Option(help="Data source to attach to avent"),
+    data_source: str = typer.Option(help="Data source to attach to agent"),
 ):
     try:
         # loads the data contained in data source into the agent's memory
