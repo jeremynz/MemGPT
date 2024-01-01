@@ -225,7 +225,7 @@ class CLIInterface(AgentInterface):
                 idx -= 1
             role = msg["role"]
             if "content_pre" in msg:
-                content_pre = msg["content_pre"]
+                inner_thoughts_pre = msg["content_pre"]
             else:
                 content_pre = None
             if "content" in msg:
@@ -233,7 +233,7 @@ class CLIInterface(AgentInterface):
             else:
                 content = None
             if "content_post" in msg:
-                content_post = msg["content_post"]
+                inner_thoughts_post = msg["content_post"]
             else:
                 content_post = None
 
@@ -242,19 +242,19 @@ class CLIInterface(AgentInterface):
             elif role == "assistant":
                 # Differentiate between internal monologue, function calls, and messages
                 if msg.get("function_call"):
-                    if content_pre is not None:
-                        CLIInterface.internal_monologue(content_pre)
+                    if inner_thoughts_pre is not None:
+                        CLIInterface.internal_monologue(inner_thoughts_pre)
                     # I think the next one is not up to date
                     # function_message(msg["function_call"])
                     args = json.loads(msg["function_call"].get("arguments"))
                     CLIInterface.assistant_message(args.get("message"))
-                    if content_post is not None:
-                        CLIInterface.internal_monologue(content_post)
+                    if inner_thoughts_post is not None:
+                        CLIInterface.internal_monologue(inner_thoughts_post)
 
                     # assistant_message(content)
                 else:
-                    CLIInterface.internal_monologue(content_pre)
-                    CLIInterface.internal_monologue(content_post)
+                    CLIInterface.internal_monologue(inner_thoughts_pre)
+                    CLIInterface.internal_monologue(inner_thoughts_post)
             elif role == "user":
                 CLIInterface.user_message(content, dump=dump)
             elif role == "function":
@@ -266,12 +266,16 @@ class CLIInterface(AgentInterface):
     def print_messages_simple(message_sequence):
         for msg in message_sequence:
             role = msg["role"]
+            inner_thoughts_pre = msg["content_pre"]
             content = msg["content"]
+            inner_thoughts_post = msg["content_post"]
 
             if role == "system":
                 CLIInterface.system_message(content)
             elif role == "assistant":
+                CLIInterface.internal_monologue(inner_thoughts_pre)
                 CLIInterface.assistant_message(content)
+                CLIInterface.internal_monologue(inner_thoughts_post)
             elif role == "user":
                 CLIInterface.user_message(content, raw=True)
             else:

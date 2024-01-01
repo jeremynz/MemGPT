@@ -139,10 +139,6 @@ def run_agent_loop(memgpt_agent, first, no_verify=False, cfg=None, strip_ui=Fals
                     interface.print_messages_raw(memgpt_agent.messages)
                     continue
 
-                elif user_input.lower() == "/dumpfunctions":
-                    interface.print_messages_raw(functions)
-                    continue
-
                 elif user_input.lower() == "/memory":
                     print(f"\nDumping memory contents:\n")
                     print(f"{str(memgpt_agent.memory)}")

@@ -24,6 +24,18 @@ def send_message(self, message: str) -> Optional[str]:
     self.interface.assistant_message(message)
     return None
 
+def send_message_with_heartbeat(self, message: str) -> Optional[str]:
+    """
+    Sends a message to the human user, includes heartbeat support.
+
+    Args:
+        message (str): Message contents. All unicode (including emojis) are supported.
+
+    Returns:
+        Optional[str]: None is always returned as this function does not produce a response.
+    """
+    self.interface.assistant_message(message)
+    return None
 
 # Construct the docstring dynamically (since it should use the external constants)
 pause_heartbeats_docstring = f"""
