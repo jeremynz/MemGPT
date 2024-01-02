@@ -229,7 +229,7 @@ def run_agent_loop(memgpt_agent, first, no_verify=False, cfg=None, strip_ui=Fals
                     user_message = None
 
                 elif user_input.lower() == "/heartbeat":
-                    user_message = system.get_heartbeat()
+                    user_message = system.get_heartbeat(reason="User sent heartbeat instead of message")
 
                 elif user_input.lower() == "/memorywarning":
                     user_message = system.get_token_limit_warning()

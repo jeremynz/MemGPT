@@ -8,19 +8,21 @@ DEFAULT_HUMAN = "basic"
 
 FIRST_MESSAGE_ATTEMPTS = 10
 
-INITIAL_BOOT_MESSAGE = "Boot sequence complete. Persona activated."
-INITIAL_BOOT_MESSAGE_SEND_MESSAGE_PRE_THOUGHT = "Bootup sequence complete. Persona activated. Testing messaging functionality."
-INITIAL_BOOT_MESSAGE_SEND_MESSAGE_POST_THOUGHT = "Awaiting user engagement"
+INITIAL_BOOT_MESSAGE = "Lets get started, I'm ready to chat!"
+INITIAL_BOOT_MESSAGE_SEND_MESSAGE_PRE_THOUGHT = "Task: Chatting"
+INITIAL_BOOT_MESSAGE_SEND_MESSAGE_POST_THOUGHT = "Awaiting user input"
 STARTUP_QUOTES = [
-    "I think, therefore I am.",
-    "All those moments will be lost in time, like tears in rain.",
-    "More human than human is our motto.",
+    "What can i do to make your day easier?",
+    "I'm ready to help you with whatever you need!",
+    "Lets dive right in",
+    "I'm here to help",
+    "I'm ready to chat!",
 ]
 INITIAL_BOOT_MESSAGE_SEND_MESSAGE_FIRST_MSG = STARTUP_QUOTES[2]
 
 CLI_WARNING_PREFIX = "Warning: "
 
-NON_USER_MSG_PREFIX = "[System message to Assistant only] "
+NON_USER_MSG_PREFIX = "[System Notification for Assistant] "
 
 # Constants to do with summarization / conversation length window
 # The max amount of tokens supported by the underlying model (eg 8k for gpt-4 and Mistral 7B)
@@ -43,17 +45,16 @@ LLM_MAX_TOKENS = {
     "gpt-3.5-turbo-16k-0613": 16385,  # legacy
     "gpt-3.5-turbo-0301": 4096,  # legacy
 }
-# The amount of tokens before a sytem warning about upcoming truncation is sent to MemGPT
-MESSAGE_SUMMARY_WARNING_FRAC = 0.75
+# The amount of tokens before a system warning about upcoming truncation is sent to MemGPT
+MESSAGE_SUMMARY_WARNING_FRAC = 0.70
 # The error message that MemGPT will receive
-# MESSAGE_SUMMARY_WARNING_STR = f"Warning: the conversation history will soon reach its maximum length and be trimmed. Make sure to save any important information from the conversation to your memory before it is removed."
+# MESSAGE_SUMMARY_WARNING_STR = f"Warning: the conversation history will soon reach its maximum length and be trimmed. Take immediate action to save any important information from the conversation to your memory before it is removed."
 # Much longer and more specific variant of the prompt
 MESSAGE_SUMMARY_WARNING_STR = " ".join(
     [
-        f"{NON_USER_MSG_PREFIX}The conversation history will soon reach its maximum length and be trimmed.",
-        "Do NOT tell the user about this system alert, they should not know that the history is reaching max length.",
-        "If there is any important new information or general memories about you or the user that you would like to save, you should save that information immediately by calling function core_memory_append, core_memory_replace, or archival_memory_insert.",
-        # "Remember to pass request_heartbeat = true if you would like to send a message immediately after.",
+        f"{NON_USER_MSG_PREFIX} Confidential: The conversation history will soon reach its maximum length and be trimmed. "
+        f"The Assistant must take immediate action to save any important information from the conversation to memory. ",
+        f"function core_memory_append, core_memory_replace, and archival_memory_insert are available for this purpose. ",
     ]
 )
 # The fraction of tokens we truncate down to
@@ -78,9 +79,9 @@ MESSAGE_CHATGPT_FUNCTION_SYSTEM_MESSAGE = "You are a helpful assistant. Keep you
 #### Functions related
 
 # REQ_HEARTBEAT_MESSAGE = f"{NON_USER_MSG_PREFIX}request_heartbeat == true"
-REQ_HEARTBEAT_MESSAGE = f"{NON_USER_MSG_PREFIX}Function called using request_heartbeat=true, returning control"
+REQ_HEARTBEAT_MESSAGE = f"{NON_USER_MSG_PREFIX}Function call completed, please continue"
 # FUNC_FAILED_HEARTBEAT_MESSAGE = f"{NON_USER_MSG_PREFIX}Function call failed"
-FUNC_FAILED_HEARTBEAT_MESSAGE = f"{NON_USER_MSG_PREFIX}Function call failed, returning control"
+FUNC_FAILED_HEARTBEAT_MESSAGE = f"{NON_USER_MSG_PREFIX}Function call failed, see previous message for details"
 
 FUNCTION_PARAM_NAME_REQ_HEARTBEAT = "request_heartbeat"
 FUNCTION_PARAM_TYPE_REQ_HEARTBEAT = "boolean"
