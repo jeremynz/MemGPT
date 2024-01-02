@@ -438,7 +438,12 @@ class Agent(object):
             return False
 
         if require_monologue and (
-            not response_message.get("content") or response_message["content"] is None or response_message["content"] == ""
+            not response_message.get("content")
+            or response_message["content"] is None
+            or response_message["content"] == ""
+            or not response_message.get("content_pre")
+            or response_message["content_pre"] is None
+            or response_message["content_pre"] == " "
         ):
             printd(f"First message missing internal monologue: {response_message}")
             return False
@@ -565,7 +570,7 @@ class Agent(object):
 
         else:
             # Standard non-function reply
-            self.interface.internal_monologue(response_message.content)
+            self.interface.internal_monologue(response_message.content_pre)
             messages.append(response_message)  # extend conversation with assistant's reply
             heartbeat_request = None
             function_failed = None

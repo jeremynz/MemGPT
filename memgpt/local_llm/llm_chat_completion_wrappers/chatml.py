@@ -123,7 +123,7 @@ class ChatMLInnerMonologueWrapper(LLMChatCompletionWrapper):
             }
         """
         airo_func_call = {
-            "function": function_call["name"],
+            "function_call": function_call["name"],
             "params": {
                 "inner_thoughts_pre": inner_thoughts_pre,
                 **json.loads(function_call["arguments"]),
@@ -261,7 +261,7 @@ class ChatMLInnerMonologueWrapper(LLMChatCompletionWrapper):
             inner_thoughts_post = cleaned_function_args.pop("inner_thoughts_post")
 
         # TODO more cleaning to fix errors LLM makes
-        return (inner_thoughts_pre, inner_thoughts_post, cleaned_function_name, cleaned_function_args)
+        return (inner_thoughts_pre, cleaned_function_name, cleaned_function_args, inner_thoughts_post)
 
     def output_to_chat_completion_response(self, raw_llm_output, first_message=False):
         """Turn raw LLM output into a ChatCompletion style response with:
@@ -368,20 +368,22 @@ class ChatMLOuterInnerMonologueWrapper(ChatMLInnerMonologueWrapper):
             ]
         )
         prompt += f"\nAvailable functions:"
+        prompt += "\n\'\'\'\n"
         for function_dict in functions:
             prompt += f"\n{self._compile_function_description(function_dict, add_inner_thoughts=False)}"
-
+        prompt += "\n\'\'\'\n"
         return prompt
 
-    def _compile_function_call(self, function_call, inner_thoughts=None):
+    def _compile_function_call(self, function_call, inner_thoughts_pre=None, inner_thoughts_post=None):
         """NOTE: Modified to put inner thoughts outside the function"""
         airo_func_call = {
-            "inner_thoughts": inner_thoughts,
+            "inner_thoughts_pre": inner_thoughts_pre,
             "function": function_call["name"],
             "params": {
                 # "inner_thoughts": inner_thoughts,
                 **json.loads(function_call["arguments"]),
             },
+            "inner_thoughts_post": inner_thoughts_post,
         }
         return json.dumps(airo_func_call, indent=self.json_indent)
 
@@ -391,7 +393,7 @@ class ChatMLOuterInnerMonologueWrapper(ChatMLInnerMonologueWrapper):
         Also, allow messages that have None/null function calls
         """
 
-        # If we used a prefex to guide generation, we need to add it to the output as a preefix
+        # If we used a prefex to guide generation, we need to add it to the output as a prefix
         assistant_prefix = (
             self.assistant_prefix_extra_first_message if (self.supports_first_message and first_message) else self.assistant_prefix_extra
         )
@@ -405,6 +407,7 @@ class ChatMLOuterInnerMonologueWrapper(ChatMLInnerMonologueWrapper):
         try:
             # NOTE: main diff
             inner_thoughts_pre = function_json_output["inner_thoughts_pre"]
+            inner_thoughts_post = function_json_output["inner_thoughts_post"]
             # NOTE: also have to account for "function": null
             if (
                 "function" in function_json_output
@@ -417,7 +420,6 @@ class ChatMLOuterInnerMonologueWrapper(ChatMLInnerMonologueWrapper):
             else:
                 function_name = None
                 function_parameters = None
-            inner_thoughts_post = function_json_output["inner_thoughts_post"]
 
         except KeyError as e:
             raise LLMJSONParsingError(f"Received valid JSON from LLM, but JSON was missing fields: {str(e)}")
@@ -436,9 +438,10 @@ class ChatMLOuterInnerMonologueWrapper(ChatMLInnerMonologueWrapper):
 
         if function_name is not None and self.clean_func_args:
             (
-                _inner_thoughts,  # NOTE: main diff (ignore)
+                _inner_thoughts_pre,  # NOTE: main diff (ignore)
                 function_name,
                 function_parameters,
+                _inner_thoughts_post,
             ) = self._clean_function_args(function_name, function_parameters)
 
         message = {
@@ -450,7 +453,6 @@ class ChatMLOuterInnerMonologueWrapper(ChatMLInnerMonologueWrapper):
             # },
             "content_post": inner_thoughts_post,
         }
-
         # Add the function if not none:
         if function_name is not None:
             message["function_call"] = {
